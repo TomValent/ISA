@@ -3,6 +3,9 @@
 
 using namespace std;
 
+#define DEFAULT_HTTP_PORT 80
+#define DEFAULT_HTTPS_PORT 443
+
 class Arguments{
     protected:
         char *feedfile;
@@ -12,6 +15,7 @@ class Arguments{
         bool showTime = false;
         bool showAuthor = false;
         bool showURL = false;
+        int port;
 
     public:                                         //getters and setters for given arguments
         void setFeedfile(char *feedfile){
@@ -62,6 +66,31 @@ class Arguments{
         bool ShowURL(){
             return this->showURL;
         }
+
+        void setPort(int port){
+            this->port = port;
+        }
+        int getPort(){
+            return this->port;
+        }
+
+        int findPort(char *link){
+            char port[10];
+            for(unsigned i = 0; i < strlen(link); i++){
+                if(link[i] == ':' && link[i+1] >= '0' && link[i+1] <= '9'){
+                    int j = 0;
+                    i++;
+                    while(link[i] >= '0' && link[i] <= '9'){
+                        port[j] = link[i];
+                        j++;
+                        i++;
+                    }
+                    port[j] = '\0';
+                    return atoi(port);
+                }
+            }
+            return 0; // == false
+        }
 };
 
 Arguments parseArguments(int argc, char **argv){
@@ -79,6 +108,14 @@ Arguments parseArguments(int argc, char **argv){
         else if(strstr(argv[i], "http://www.") || strstr(argv[i], "https://www.")){
             args.setFeedURL(argv[i]);
             file = true;
+            args.setPort(args.findPort(argv[i]));
+            if(!args.getPort()){
+                if(strstr(argv[i], "http:")){
+                    args.setPort(DEFAULT_HTTP_PORT);
+                } else {
+                    args.setPort(DEFAULT_HTTPS_PORT);
+                }
+            }
         }
         else if(strcmp(argv[i], "-c") == 0) {
             if(i+1 < argc){
