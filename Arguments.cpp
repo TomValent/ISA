@@ -142,7 +142,6 @@ int main(int argc, char **argv) {
 
     Arguments args = parseArguments(argc, argv);
     std::vector<std::string> urls;
-    urls.push_back("str1");
 
     if(!OpenSSL::processFeeds(urls, &args)){
         return ERROR;
