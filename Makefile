@@ -1,11 +1,14 @@
 CPP=g++
 CFLAGS=-std=c++20 -Wall -pedantic -pie
 
-feedreader: feedreader.o
-	$(CPP) $(CFLAGS) feedreader.o -o feedreader
+feedreader: arguments.o openssl.o
+	$(CPP) $(CFLAGS) arguments.o openssl.o -o feedreader
 
-feedreader.o: main.cpp
-	$(CPP) $(CFLAGS) -c main.cpp -o feedreader.o
+arguments.o: Arguments.cpp Arguments.h
+	$(CPP) $(CFLAGS) -c Arguments.cpp -o arguments.o
+
+openssl.o: OpenSSL.cpp OpenSSL.h
+	$(CPP) $(CFLAGS) -c OpenSSL.cpp -o openssl.o
 
 clean:
 	rm *.o feedreader -f
