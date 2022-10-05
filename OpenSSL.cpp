@@ -4,16 +4,9 @@
 #include "OpenSSL.h"
 
 bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments){
-
-    //    if(args.getFeedURL()){
-    //
-    //    }else if(args.getFeedfile()){
-    //
-    //    }
-
-    //    if(!args.getCertificate() && !args.getCertificateAddr()){
-    //        OpenSSL::processFeeds(urls, args);
-    //    }
-
+    SSL_library_init();
+    SSL_load_error_strings();
+    ERR_load_BIO_strings();
+    OpenSSL_add_all_algorithms();
     return false;
 }
