@@ -2,6 +2,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include <fstream>
 #include "Arguments.h"
 #include "OpenSSL.h"
 
@@ -12,17 +13,17 @@ using namespace std;
 #define ERROR 1
 
 
-void Arguments::setFeedfile(char *feedfile){
+void Arguments::setFeedfile(string feedfile){
     this->feedfile = feedfile;
 }
-char* Arguments::getFeedfile(){
+string Arguments::getFeedfile(){
     return this->feedfile;
 }
 
-void Arguments::setFeedURL(char *feedURL){
+void Arguments::setFeedURL(string feedURL){
     this->feedURL = feedURL;
 }
-char* Arguments::getFeedURL(){
+string Arguments::getFeedURL(){
     return this->feedURL;
 }
 
@@ -86,6 +87,27 @@ int Arguments::findPort(char *link){
     return 0; // == false
 }
 
+vector<string> Arguments::getUrlsFromFile(string filename){
+    fstream file;
+    file.open(filename.c_str(), ios::in);
+    if(!file){
+        fprintf(stderr, "Can't open feed file.\n");
+        exit(ERROR);
+    }
+
+    string line;
+    vector<string> list;
+
+    while (getline(file, line)){
+        if (line.empty() || !line.compare(0, 1, "#"))
+            continue;
+        list.push_back(line);
+    }
+
+    file.close();
+    return list;
+}
+
 Arguments parseArguments(int argc, char **argv){
     bool file = false;
     Arguments args;
@@ -141,7 +163,12 @@ Arguments parseArguments(int argc, char **argv){
 int main(int argc, char **argv) {
 
     Arguments args = parseArguments(argc, argv);
-    std::vector<std::string> urls;
+    vector<string> urls;
+
+    if(args.getFeedURL() != "")
+        urls.push_back(args.getFeedURL());
+    else
+        urls = Arguments::getUrlsFromFile(args.getFeedfile());
 
     if(!OpenSSL::processFeeds(urls, &args)){
         return ERROR;

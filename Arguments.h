@@ -1,10 +1,12 @@
+#include <string>
+
 #ifndef ISA_ARGUMENTS_H
 #define ISA_ARGUMENTS_H
 
 class Arguments {
     protected:
-        char *feedfile;
-        char *feedURL;
+        std::string feedfile = "";
+        std::string feedURL = "";
         char *certif = nullptr;
         char *certifAddr = nullptr;
         bool showTime = false;
@@ -13,10 +15,10 @@ class Arguments {
         int port;
 
     public:
-        void setFeedfile(char *feedfile);
-        char *getFeedfile();
-        void setFeedURL(char *feedURL);
-        char *getFeedURL();
+        void setFeedfile(std::string feedfile);
+        std::string getFeedfile();
+        void setFeedURL(std::string feedURL);
+        std::string getFeedURL();
         void setCertificate(char *certificate);
         char *getCertificate();
         void setCertificateAddr(char *certificateAddr);
@@ -30,5 +32,6 @@ class Arguments {
         void setPort(int port);
         int getPort();
         int findPort(char *link);
+        static std::vector<std::string> getUrlsFromFile(std::string filename);
 };
 #endif //ISA_ARGUMENTS_H
