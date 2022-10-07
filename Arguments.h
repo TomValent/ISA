@@ -15,6 +15,8 @@ class Arguments {
         int port;
 
     public:
+        bool portInLink = false;
+
         void setFeedfile(std::string feedfile);
         std::string getFeedfile();
         void setFeedURL(std::string feedURL);

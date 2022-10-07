@@ -124,6 +124,7 @@ Arguments parseArguments(int argc, char **argv){
             file = true;
             args.setPort(args.findPort(argv[i]));
             if(!args.getPort()){
+                args.portInLink = true;
                 if(strstr(argv[i], "http:")){
                     args.setPort(DEFAULT_HTTP_PORT);
                 } else {
