@@ -1,5 +1,5 @@
 CPP=g++
-CFLAGS=-std=c++17 -Wall -pedantic -pie -fPIC
+CFLAGS=-std=c++17 -Wall -pedantic -pie -fPIC -static-libstdc++
 LDFLAGS = -L/usr/local/ssl/lib
 LDLIBS = -lssl -lcrypto
 
