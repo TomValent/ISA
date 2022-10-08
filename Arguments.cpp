@@ -11,7 +11,9 @@ using namespace std;
 #define DEFAULT_HTTP_PORT 80
 #define DEFAULT_HTTPS_PORT 443
 #define ERROR 1
+#define MAX_URL_SIZE 100
 
+int portArray[100];
 
 void Arguments::setFeedfile(string feedfile){
     this->feedfile = feedfile;
@@ -97,11 +99,17 @@ vector<string> Arguments::getUrlsFromFile(string filename){
 
     string line;
     vector<string> list;
+    int count = 0;
 
     while (getline(file, line)){
         if (line.empty() || !line.compare(0, 1, "#"))
             continue;
         list.push_back(line);
+        char charURL[MAX_URL_SIZE];
+        strcpy(charURL, line.c_str());
+        Arguments args;
+        portArray[count] = args.findPort(charURL);
+        count++;
     }
 
     file.close();
@@ -168,8 +176,22 @@ int main(int argc, char **argv) {
 
     if(args.getFeedURL() != "")
         urls.push_back(args.getFeedURL());
-    else
+    else{
         urls = Arguments::getUrlsFromFile(args.getFeedfile());
+
+        int len = urls.size();
+        for(int i = 0; i < len; i++){       //urls
+            if(portArray[i] == 0){
+                args.portInLink = false;
+                if(strstr(urls.at(i).c_str(), "http:")){
+                    portArray[i] = DEFAULT_HTTP_PORT;
+                } else {
+                    portArray[i] = DEFAULT_HTTPS_PORT;
+                }
+            }
+            args.ports[i] = portArray[i];
+        }
+    }
 
     if(!OpenSSL::processFeeds(urls, &args)){
         return ERROR;
