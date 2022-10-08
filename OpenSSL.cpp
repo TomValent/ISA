@@ -83,16 +83,21 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         SSL *ssl = nullptr;
         char *host;
 
-        //std::cout << url << std::endl << parseURL(url, true, arguments->ports[i-1], arguments->portInLink) << std::endl;
-        //std::cout << url << " " << arguments->getPort() << std::endl << parseURL(url, false, arguments->getPort(), arguments->portInLink) << std::endl;
-        return true;
         if(!strstr(url.c_str(), "https:")){
-            host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
+            if(arguments->getPort() != 0){
+                host = parseURL(url, false, arguments->ports[i-1], arguments->portInLink);
+            } else {
+                host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
+            }
             bio = BIO_new_connect(host);
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
         }
         else{
-            host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
+            if(arguments->getPort() != 0){
+                host = parseURL(url, true, arguments->ports[i-1], arguments->portInLink);
+            } else {
+                host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
+            }
             bio = BIO_new_connect(host);
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
 
