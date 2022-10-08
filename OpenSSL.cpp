@@ -84,10 +84,13 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         SSL *ssl = nullptr;
 
         if(!strstr(url.c_str(), "https:")){
-            bio = BIO_new_connect(parseURL(url, false, arguments->getPort(), arguments->portInLink));
+            char *host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
+            bio = BIO_new_connect(host);
+            ssl_ctx = SSL_CTX_new(SSLv23_client_method());
         }
         else{
-            bio = BIO_new_connect(parseURL(url, true, arguments->getPort(), arguments->portInLink));
+            char *host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
+            bio = BIO_new_connect(host);
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
 
             int verify = 0;
@@ -112,9 +115,6 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
                 return false;
             }
 
-            bio = BIO_new_ssl_connect(ssl_ctx);
-            BIO_get_ssl(bio, &ssl);
-            SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
         }
 
         if(bio == NULL)
