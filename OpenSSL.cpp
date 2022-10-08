@@ -84,7 +84,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         char *host;
 
         if(!strstr(url.c_str(), "https:")){
-            if(arguments->getPort() != 0){
+            if(arguments->getFeedfile() != ""){
                 host = parseURL(url, false, arguments->ports[i-1], arguments->portInLink);
             } else {
                 host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
@@ -93,12 +93,11 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
         }
         else{
-            if(arguments->getPort() != 0){
+            if(arguments->getFeedfile() != ""){
                 host = parseURL(url, true, arguments->ports[i-1], arguments->portInLink);
             } else {
                 host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
             }
-            bio = BIO_new_connect(host);
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
 
             int verify = 0;
@@ -113,16 +112,16 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
                 verify = SSL_CTX_load_verify_locations(ssl_ctx, nullptr, arguments->getCertificateAddr().c_str());
             }
 
-            if (!verify)
-            {
-                fprintf(stderr,"Verification of certificates on '%s' failed.", url.c_str());
-                if(bio)
-                    BIO_free_all(bio);
+            if (!verify){
+                fprintf(stderr,"Verification of certificates failed.");
                 if(ssl_ctx)
                     SSL_CTX_free(ssl_ctx);
                 return false;
             }
-
+            bio = BIO_new_ssl_connect(ssl_ctx);
+            bio = BIO_new_connect(host);
+            BIO_set_conn_hostname(bio, host);
+            BIO_do_connect(bio);
         }
 
         if(bio == NULL)
@@ -142,11 +141,20 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         if (strstr(url.c_str(), "https:"))
         {
             BIO_get_ssl(bio, &ssl);
-            SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
-            BIO_set_conn_hostname(bio, host);
         }
 
-        //cout << url;
+        if (ssl && SSL_get_verify_result(ssl) != X509_V_OK)
+        {
+            fprintf(stderr, "Verification of certificates failed.\n");
+                fprintf(stderr, "Error: %s", ERR_reason_error_string(ERR_get_error()));
+            if(bio)
+                BIO_free_all(bio);
+            if(ssl_ctx)
+                SSL_CTX_free(ssl_ctx);
+            return false;
+        }
+
+
     }
     return true;
 }
