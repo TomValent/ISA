@@ -33,7 +33,7 @@ char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
     char charURL[MAX_URL_SIZE];
     strcpy(charURL, url.c_str());
 
-    char *newURL = (char*) malloc(MAX_URL_SIZE);;
+    char *newURL = (char*) malloc(MAX_URL_SIZE);
     int start;
     char end = '/';
 
@@ -44,7 +44,7 @@ char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
     }
     size_t i;
     for(i = 0; i < strlen(charURL); i++, start++){
-        if(charURL[start] == end){
+        if(charURL[start] == end || charURL[start] == '\0'){
             newURL[i] = ':';
             i++;
             break;
@@ -63,7 +63,6 @@ char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
     else{
         newURL[--i] = '\0';
     }
-
     return newURL;
 }
 
@@ -82,14 +81,18 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         BIO *bio = nullptr;
         SSL_CTX *ssl_ctx = nullptr;
         SSL *ssl = nullptr;
+        char *host;
 
+        //std::cout << url << std::endl << parseURL(url, true, arguments->ports[i-1], arguments->portInLink) << std::endl;
+        //std::cout << url << " " << arguments->getPort() << std::endl << parseURL(url, false, arguments->getPort(), arguments->portInLink) << std::endl;
+        return true;
         if(!strstr(url.c_str(), "https:")){
-            char *host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
+            host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
             bio = BIO_new_connect(host);
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
         }
         else{
-            char *host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
+            host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
             bio = BIO_new_connect(host);
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
 
@@ -131,6 +134,14 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             return false;
         }
 
+        if (strstr(url.c_str(), "https:"))
+        {
+            BIO_get_ssl(bio, &ssl);
+            SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
+            BIO_set_conn_hostname(bio, host);
+        }
+
+        //cout << url;
     }
     return true;
 }
