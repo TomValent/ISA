@@ -89,7 +89,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         else{
             bio = BIO_new_connect(parseURL(url, true, arguments->getPort(), arguments->portInLink));
             ssl_ctx = SSL_CTX_new(SSLv23_client_method());
-<
+
             int verify = 0;
             if(arguments->getCertificate() == "" && arguments->getCertificateAddr() == "")
             {
