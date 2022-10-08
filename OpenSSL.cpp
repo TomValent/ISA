@@ -52,7 +52,7 @@ char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
         newURL[i] = charURL[start];
     }
 
-    if(portInLink){
+    if(!portInLink){
         char *strPort = str2char(port);
 
         for(size_t j = 0; j < strlen(strPort); j++, i++){
@@ -64,7 +64,6 @@ char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
         newURL[--i] = '\0';
     }
 
-    printf("%s\n", newURL);
     return newURL;
 }
 
@@ -82,12 +81,56 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         }
         BIO *bio = nullptr;
         SSL_CTX *ssl_ctx = nullptr;
+        SSL *ssl = nullptr;
 
         if(!strstr(url.c_str(), "https:")){
             bio = BIO_new_connect(parseURL(url, false, arguments->getPort(), arguments->portInLink));
         }
         else{
             bio = BIO_new_connect(parseURL(url, true, arguments->getPort(), arguments->portInLink));
+            ssl_ctx = SSL_CTX_new(SSLv23_client_method());
+<
+            int verify = 0;
+            if(arguments->getCertificate() == "" && arguments->getCertificateAddr() == "")
+            {
+                verify = SSL_CTX_set_default_verify_paths(ssl_ctx);
+            } else if(arguments->getCertificate() != "" && arguments->getCertificateAddr() != ""){
+                verify = SSL_CTX_load_verify_locations(ssl_ctx,arguments->getCertificate().c_str(),arguments->getCertificateAddr().c_str());
+            } else if(arguments->getCertificate() != ""){
+                verify = SSL_CTX_load_verify_locations(ssl_ctx, arguments->getCertificate().c_str(), nullptr);
+            } else if(arguments->getCertificateAddr() != ""){
+                verify = SSL_CTX_load_verify_locations(ssl_ctx, nullptr, arguments->getCertificateAddr().c_str());
+            }
+
+            if (!verify)
+            {
+                fprintf(stderr,"Verification of certificates on '%s' failed.", url.c_str());
+                if(bio)
+                    BIO_free_all(bio);
+                if(ssl_ctx)
+                    SSL_CTX_free(ssl_ctx);
+                return false;
+            }
+
+            bio = BIO_new_ssl_connect(ssl_ctx);
+            BIO_get_ssl(bio, &ssl);
+            SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
         }
-    }return false;
+
+        if(bio == NULL)
+        {
+            fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
+            if(ssl_ctx)
+                SSL_CTX_free(ssl_ctx);
+            return false;
+        }
+
+        if(BIO_do_connect(bio) <= 0)
+        {
+            fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
+            return false;
+        }
+
+    }
+    return true;
 }

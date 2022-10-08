@@ -27,17 +27,17 @@ string Arguments::getFeedURL(){
     return this->feedURL;
 }
 
-void Arguments::setCertificate(char *certificate){
+void Arguments::setCertificate(std::string certificate){
     this->certif = certificate;
 }
-char* Arguments::getCertificate(){
+std::string Arguments::getCertificate(){
     return this->certif;
 }
 
-void Arguments::setCertificateAddr(char *certificateAddr){
+void Arguments::setCertificateAddr(std::string certificateAddr){
     this->certifAddr = certificateAddr;
 }
-char* Arguments::getCertificateAddr(){
+std::string Arguments::getCertificateAddr(){
     return this->certifAddr;
 }
 
@@ -119,12 +119,12 @@ Arguments parseArguments(int argc, char **argv){
                 file = true;
             }
         }
-        else if(strstr(argv[i], "http://www.") || strstr(argv[i], "https://www.")){
+        else if(strstr(argv[i], "http://") || strstr(argv[i], "https://")){
             args.setFeedURL(argv[i]);
             file = true;
             args.setPort(args.findPort(argv[i]));
             if(!args.getPort()){
-                args.portInLink = true;
+                args.portInLink = false;
                 if(strstr(argv[i], "http:")){
                     args.setPort(DEFAULT_HTTP_PORT);
                 } else {

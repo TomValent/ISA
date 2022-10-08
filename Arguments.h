@@ -7,24 +7,24 @@ class Arguments {
     protected:
         std::string feedfile = "";
         std::string feedURL = "";
-        char *certif = nullptr;
-        char *certifAddr = nullptr;
+        std::string certif = "";
+        std::string certifAddr = "";
         bool showTime = false;
         bool showAuthor = false;
         bool showURL = false;
         int port;
 
     public:
-        bool portInLink = false;
+        bool portInLink = true;
 
         void setFeedfile(std::string feedfile);
         std::string getFeedfile();
         void setFeedURL(std::string feedURL);
         std::string getFeedURL();
-        void setCertificate(char *certificate);
-        char *getCertificate();
-        void setCertificateAddr(char *certificateAddr);
-        char *getCertificateAddr();
+        void setCertificate(std::string certificate);
+        std::string getCertificate();
+        void setCertificateAddr(std::string certificateAddr);
+        std::string getCertificateAddr();
         void setShowTime(bool showTime);
         bool ShowTime();
         void setShowAuthor(bool showAuthor);
