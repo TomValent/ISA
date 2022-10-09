@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 #ifndef ISA_ARGUMENTS_H
 #define ISA_ARGUMENTS_H
