@@ -4,6 +4,7 @@
 #include <iostream>
 
 bool Parser::parseHttpResponse(std::string response, std::string *responseText){
+    std::cout << response << std::endl;
     return true;
 }
 

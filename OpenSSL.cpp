@@ -4,10 +4,9 @@
 #include <string.h>
 #include "OpenSSL.h"
 #include "Parser.h"
-#include <iostream>
 
-#define MAX_URL_SIZE 100
-#define MAX_REQUEST_SIZE 300
+#define MAX_URL_SIZE 500
+#define MAX_REQUEST_SIZE 500
 #define MAX_READ_SIZE 5000
 
 char *getPath(std::string url){
@@ -177,13 +176,13 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         char req[MAX_REQUEST_SIZE] = "";
         strcat(req, "GET ");
         strcat(req, getPath(url));
-        strcat(req, "\r\nHost: ");
+        strcat(req, " HTTP/1.0\r\n");
+        strcat(req, "Host: ");
         strcat(req, host);
         strcat(req, "\r\n");
         strcat(req, "Connection: Close\r\n");
         strcat(req, "User-Agent: Mozilla/5.0 Chrome/70.0.3538.77 Safari/537.36\r\n\r\n");
 
-        printf("path: %s\nurl: %s\n", getPath(url), host);
         std::string request(req);
 
         auto writeDataSize = static_cast<int>(request.size());
@@ -215,9 +214,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             bool done = false;
             while(firstRead || BIO_should_retry(bio)){
                 firstRead = false;
-                std::cout << "bio: " << bio << std::endl;
                 readRes = BIO_read(bio, responseBuff, MAX_READ_SIZE - 1);
-                printf("response length: %d\nbuffer: %s\n", readRes, responseBuff);
                 if(readRes >= 0){
                     if(readRes > 0){
                         responseBuff[readRes] = '\0';

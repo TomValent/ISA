@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
-#include <string>
 #include <fstream>
 #include "Arguments.h"
 #include "OpenSSL.h"
@@ -11,7 +10,7 @@ using namespace std;
 #define DEFAULT_HTTP_PORT 80
 #define DEFAULT_HTTPS_PORT 443
 #define ERROR 1
-#define MAX_URL_SIZE 100
+#define MAX_URL_SIZE 500
 
 int portArray[100];
 
