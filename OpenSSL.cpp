@@ -3,9 +3,30 @@
 #include <openssl/err.h>
 #include <string.h>
 #include "OpenSSL.h"
+#include "Parser.h"
 #include <iostream>
 
 #define MAX_URL_SIZE 100
+#define MAX_REQUEST_SIZE 300
+#define MAX_READ_SIZE 5000
+
+char *getPath(std::string url){
+    char charURL[MAX_URL_SIZE], *path = (char*)malloc(MAX_URL_SIZE);
+    strcpy(charURL, url.c_str());
+    for(size_t i = 0; i < strlen(charURL); i++){
+        if(charURL[i] == '/' && charURL[i+1] != '/' && charURL[i-1] != '/'){
+            int j = 0;
+            while(charURL[i] != '\0'){
+                path[j] = charURL[i];
+                i++;
+                j++;
+            }
+            path[j] = '\0';
+            return path;
+        }
+    }
+    return (char*)"";
+}
 
 char *str2char(int integer){
     char *str = (char*) malloc(MAX_URL_SIZE);
@@ -146,7 +167,6 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         if (ssl && SSL_get_verify_result(ssl) != X509_V_OK)
         {
             fprintf(stderr, "Verification of certificates failed.\n");
-                fprintf(stderr, "Error: %s", ERR_reason_error_string(ERR_get_error()));
             if(bio)
                 BIO_free_all(bio);
             if(ssl_ctx)
@@ -154,7 +174,98 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             return false;
         }
 
+        char req[MAX_REQUEST_SIZE] = "";
+        strcat(req, "GET ");
+        strcat(req, getPath(url));
+        strcat(req, "\r\nHost: ");
+        strcat(req, host);
+        strcat(req, "\r\n");
+        strcat(req, "Connection: Close\r\n");
+        strcat(req, "User-Agent: Mozilla/5.0 Chrome/70.0.3538.77 Safari/537.36\r\n\r\n");
 
+        printf("path: %s\nurl: %s\n", getPath(url), host);
+        std::string request(req);
+
+        auto writeDataSize = static_cast<int>(request.size());
+        bool firstWrite = true, writeDone = false;
+        while (firstWrite || BIO_should_retry(bio))
+        {
+            firstWrite = false;
+            if (BIO_write(bio, request.c_str(), writeDataSize))
+            {
+                writeDone = true;
+                break;
+            }
+        }
+        if (!writeDone)
+        {
+            fprintf(stderr, "Error while writing to bio.\n");
+            if(bio)
+                BIO_free_all(bio);
+            if(ssl_ctx)
+                SSL_CTX_free(ssl_ctx);
+            return false;
+        }
+
+        char responseBuff[MAX_READ_SIZE] = {'\0'};
+        std::string response;
+        int readRes = 0;
+        do{
+            bool firstRead = true;
+            bool done = false;
+            while(firstRead || BIO_should_retry(bio)){
+                firstRead = false;
+                std::cout << "bio: " << bio << std::endl;
+                readRes = BIO_read(bio, responseBuff, MAX_READ_SIZE - 1);
+                printf("response length: %d\nbuffer: %s\n", readRes, responseBuff);
+                if(readRes >= 0){
+                    if(readRes > 0){
+                        responseBuff[readRes] = '\0';
+                        response += responseBuff;
+                    }
+                    done = true;
+                    break;
+                }
+            }
+            if(!done){
+                fprintf(stderr, "Error while reading bio.\n");
+                if(bio)
+                    BIO_free_all(bio);
+                if(ssl_ctx)
+                    SSL_CTX_free(ssl_ctx);
+                return false;
+            }
+        }
+        while(readRes != 0);
+
+        std::string responseText;
+        Parser parser;
+
+        parser.parseHttpResponse(response, &responseText);
+//        if (!Parser::parseHttpResponse(response, &responseText))
+//        {
+//            fprintf(stderr, "Error: Invalid HTTP response from '%s'.\n", url.c_str());
+//            if(bio)
+//                BIO_free_all(bio);
+//            if(ssl_ctx)
+//                SSL_CTX_free(ssl_ctx);
+//            return false;
+//        }
+//
+//        if (!Parser::parseXML(responseText, arguments, url))
+//        {
+//            fprintf(stderr, "Error: Parsing XML feed from '%s'.\n", url.c_str());
+//            if(bio)
+//                BIO_free_all(bio);
+//            if(ssl_ctx)
+//                SSL_CTX_free(ssl_ctx);
+//            return false;
+//        }
+
+        if(bio)
+            BIO_free_all(bio);
+        if(ssl_ctx)
+            SSL_CTX_free(ssl_ctx);
     }
     return true;
 }
