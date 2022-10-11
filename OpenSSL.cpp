@@ -5,11 +5,13 @@
 #include "OpenSSL.h"
 #include "Parser.h"
 
+#include <iostream>
+
 #define MAX_URL_SIZE 500
 #define MAX_REQUEST_SIZE 500
 #define MAX_READ_SIZE 5000
 
-char *getPath(std::string url){
+std::string getPath(std::string url){
     char charURL[MAX_URL_SIZE], *path = (char*)malloc(MAX_URL_SIZE);
     strcpy(charURL, url.c_str());
     for(size_t i = 0; i < strlen(charURL); i++){
@@ -173,29 +175,23 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             return false;
         }
 
-        char req[MAX_REQUEST_SIZE] = "";
-        strcat(req, "GET ");
-        strcat(req, getPath(url));
-        strcat(req, " HTTP/1.0\r\n");
-        strcat(req, "Host: ");
-        strcat(req, host);
-        strcat(req, "\r\n");
-        strcat(req, "Connection: Close\r\n");
-        strcat(req, "User-Agent: Mozilla/5.0 Chrome/70.0.3538.77 Safari/537.36\r\n\r\n");
+        std::string strHost = host;
 
-        std::string request(req);
+        std::string request(
+                    "GET " + getPath(url) + " HTTP/1.1\r\n"
+                    "Host: " + strHost + "\r\n"
+                    "Connection: Close\r\n"
+                    "\r\n"
+                );
 
         auto writeDataSize = static_cast<int>(request.size());
-        bool firstWrite = true, writeDone = false;
-        while (firstWrite || BIO_should_retry(bio))
+        bool writeDone = false;
+
+        if (BIO_write(bio, request.c_str(), writeDataSize))
         {
-            firstWrite = false;
-            if (BIO_write(bio, request.c_str(), writeDataSize))
-            {
-                writeDone = true;
-                break;
-            }
+            writeDone = true;
         }
+
         if (!writeDone)
         {
             fprintf(stderr, "Error while writing to bio.\n");
@@ -215,6 +211,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             while(firstRead || BIO_should_retry(bio)){
                 firstRead = false;
                 readRes = BIO_read(bio, responseBuff, MAX_READ_SIZE - 1);
+                std::cout << "response len: " << readRes << "\n" << responseBuff << std::endl;
                 if(readRes >= 0){
                     if(readRes > 0){
                         responseBuff[readRes] = '\0';
@@ -234,6 +231,9 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             }
         }
         while(readRes != 0);
+
+//pray to only working url
+//"http://feeds.bbci.co.uk/news/world/rss.xml"
 
         std::string responseText;
         Parser parser;
