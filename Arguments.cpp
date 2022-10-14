@@ -82,7 +82,11 @@ int Arguments::findPort(char *link){
                 i++;
             }
             port[j] = '\0';
-            return atoi(port);
+            int portInt = atoi(port);
+            if(portInt <= 1234 && portInt != 80 && portInt != 443){
+                fprintf(stderr, "Error: Reserved port\n");
+                exit(ERROR);
+            }
         }
     }
     return 0; // == false
