@@ -196,8 +196,9 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
 
         std::string request =
                     "GET " + getPath(url) + " HTTP/1.0\r\n"
-                    "Host: " + hostOnly + "\r\n"
+                    "Host: " + host + "\r\n"
                     "Connection: close\r\n"
+                    "User-Agent: Mozilla/5.0 Chrome/90.0.4480.84 Safari/537.36\r\n"
                     "\r\n";
 
         if(BIO_write(bio, request.c_str(), request.length()) <= 0)
