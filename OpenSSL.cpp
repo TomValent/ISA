@@ -51,6 +51,18 @@ char *str2char(int integer){
     return str;
 }
 
+std::string removePort(std::string host){
+    int len = host.length();
+    bool found = false;
+    for(int i = 0; i < len; i++){
+        if(host[i] == ':' || found){
+            host[i] = '\0';
+            found = true;
+        }
+    }
+    return host;
+}
+
 char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
     char charURL[MAX_URL_SIZE];
     strcpy(charURL, url.c_str());
@@ -112,6 +124,8 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
                 host = parseURL(url, false, arguments->getPort(), arguments->portInLink);
             }
             bio = BIO_new_connect(host);
+            BIO_set_conn_hostname(bio, host);
+            BIO_do_connect(bio);
         }
         else{
             if(arguments->getFeedfile() != ""){
@@ -119,9 +133,10 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             } else {
                 host = parseURL(url, true, arguments->getPort(), arguments->portInLink);
             }
-            ssl_ctx = SSL_CTX_new(SSLv23_client_method());
 
+            ssl_ctx = SSL_CTX_new(SSLv23_client_method());
             int verify = 0;
+
             if(arguments->getCertificate() == "" && arguments->getCertificateAddr() == "")
             {
                 verify = SSL_CTX_set_default_verify_paths(ssl_ctx);
@@ -134,16 +149,15 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             }
 
             if (!verify){
-                fprintf(stderr,"Verification of certificates failed.");
-                if(ssl_ctx)
-                    SSL_CTX_free(ssl_ctx);
+                fprintf(stderr,"Verification of certificates failed.\n");\
+                fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
                 return false;
             }
 
-            bio = BIO_new_connect(host);
-            BIO_set_conn_hostname(bio, host);
-            BIO_do_connect(bio);
+            bio = BIO_new_ssl_connect(ssl_ctx);
+            BIO_get_ssl(bio, &ssl);
             SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
+            BIO_set_conn_hostname(bio, host);
         }
 
         if(bio == NULL)
@@ -161,77 +175,74 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         if (strstr(url.c_str(), "https:"))
         {
             BIO_get_ssl(bio, &ssl);
+            if(SSL_get_verify_result(ssl) != X509_V_OK){
+                fprintf(stderr, "Verification of ssl failed.\n");
+                fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
+                if(bio) {
+                    BIO_free_all(bio);
+                }
+                if(ssl_ctx){
+                    SSL_CTX_free(ssl_ctx);
+                }
+                return false;
+            }
         }
 
-        if (ssl && SSL_get_verify_result(ssl) != X509_V_OK)
+        std::string hostOnly = removePort(host);
+
+        // openssl s_client -connect hostname
+        // http server + wireshark bad request
+        // telnet link port
+
+        std::string request =
+                    "GET " + getPath(url) + " HTTP/1.0\r\n"
+                    "Host: " + hostOnly + "\r\n"
+                    "Connection: close\r\n"
+                    "\r\n";
+
+        if(BIO_write(bio, request.c_str(), request.length()) <= 0)
         {
-            fprintf(stderr, "Verification of certificates failed.\n");
-            fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
-            if(bio)
-                BIO_free_all(bio);
-            return false;
-        }
-
-        std::string strHost = host;
-
-        std::string request(
-                    "GET " + getPath(url) + " HTTP/1.1\r\n"
-                    "Host: " + strHost + "\r\n"     // openssl s_client -connect hostname
-                    "Connection: Close\r\n"         // http server + wireshark bad request
-                    "User-Agent: Mozilla/5.0 Chrome/90.0.4480.84 Safari/537.36\r\n"
-                    "\r\n"                          //telnet link port
-                );
-
-        auto writeDataSize = static_cast<int>(request.size());
-        bool writeDone = false;
-
-        if (BIO_write(bio, request.c_str(), writeDataSize))
-        {
-            writeDone = true;
-        }
-
-        if (!writeDone)
-        {
-            fprintf(stderr, "Error while writing to bio.\n");
-            fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
-            if(bio)
-                BIO_free_all(bio);
-            return false;
+            if(!BIO_should_retry(bio))
+            {
+                fprintf(stderr, "Verification of certificates failed.\n");
+                fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
+                if(bio) {
+                    BIO_free_all(bio);
+                }
+                if(ssl_ctx){
+                    SSL_CTX_free(ssl_ctx);
+                }
+                return false;
+            }
         }
 
         char responseBuff[MAX_READ_SIZE] = {'\0'};
         std::string response;
         int readRes = 0;
+
         do{
-            bool firstRead = true;
-            bool done = false;
-            while(firstRead || BIO_should_retry(bio)){
-                firstRead = false;
-                readRes = BIO_read(bio, responseBuff, MAX_READ_SIZE - 1);
-                if(readRes >= 0){
-                    if(readRes > 0){
-                        responseBuff[readRes] = '\0';
-                        response += responseBuff;
-                    }
-                    done = true;
-                    break;
+            readRes = BIO_read(bio, responseBuff, MAX_READ_SIZE - 1);
+            if(readRes >= 0){
+                if(readRes > 0){
+                    responseBuff[readRes] = '\0';
+                    response += responseBuff;
                 }
             }
-            if(!done){
+            else{
                 fprintf(stderr, "Error while reading bio.\n");
                 fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
                 if(bio) {
                     BIO_free_all(bio);
+                }
+                if(ssl_ctx){
+                    SSL_CTX_free(ssl_ctx);
                 }
                 return false;
             }
         }
         while(readRes != 0);
 
-        std::cout << request << std::endl << response << std::endl;
-
-//pray to only working url
-//"http://feeds.bbci.co.uk/news/world/rss.xml"   //nahrat na skolsky http server
+        std::cout << request << std::endl << (response != "" ? response : "Empty response") << std::endl;
 
         //std::string responseText;
         //Parser parser;
@@ -242,6 +253,9 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
 //            fprintf(stderr, "Error: Invalid HTTP response from '%s'.\n", url.c_str());
 //            if(bio)
 //                BIO_free_all(bio);
+    //        if(ssl_ctx){
+    //            SSL_CTX_free(ssl_ctx);
+    //        }
 //            return false;
 //        }
 //
@@ -250,13 +264,17 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
 //            fprintf(stderr, "Error: Parsing XML feed from '%s'.\n", url.c_str());
 //            if(bio)
 //                BIO_free_all(bio);
-//            if(ssl_ctx)
+//            if(ssl_ctx){
 //                SSL_CTX_free(ssl_ctx);
+//            }
 //            return false;
 //        }
 
         if(bio){
             BIO_free_all(bio);
+        }
+        if(ssl_ctx){
+            SSL_CTX_free(ssl_ctx);
         }
     }
     return true;
