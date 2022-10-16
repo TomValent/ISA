@@ -1,13 +1,16 @@
 #include <string>
 #include <cstring>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
+#include <libxml/tree.h>
 #include "Arguments.h"
 #include "Parser.h"
 
 bool isAtom = false;
 bool isRss = false;
 
-size_t strpos(const std::string &haystack, const std::string &needle)
-{
+size_t strpos(const std::string &haystack, const std::string &needle){
     int sleng = haystack.length();
     int nleng = needle.length();
 
@@ -25,12 +28,15 @@ size_t strpos(const std::string &haystack, const std::string &needle)
 }
 
 bool Parser::parseHttpResponse(std::string response, std::string *responseText){
-    if(strstr(response.c_str(), "HTTP/1.0 200 OK") || strstr(response.c_str(), "HTTP/1.1 200 OK")){
-        if(strstr(response.c_str(), "<rss")) {
+    if(strstr(response.c_str(), "HTTP/1.0 200 OK") || strstr(response.c_str(), "HTTP/1.1 200 OK"))
+    {
+        if(strstr(response.c_str(), "<rss"))
+        {
             size_t beginning = strpos(response.c_str(), "<rss");
             *responseText = response.substr(beginning, response.length());
             isRss = true;
-        } else if(strstr(response.c_str(), "<feed")) {
+        } else if(strstr(response.c_str(), "<feed"))
+        {
             size_t beginning = strpos(response.c_str(), "<feed");
             *responseText = response.substr(beginning, response.length());
             isAtom = true;
@@ -43,8 +49,14 @@ bool Parser::parseHttpResponse(std::string response, std::string *responseText){
 }
 
 bool Parser::parseXML(std::string feeds, Arguments arguments){
-    printf("%d, %d\n", isAtom, isRss);
+    if(isRss){
+
+    } else if(isAtom){
+
+    }
+
+    isRss = false;          //back to default values
     isAtom = false;
-    isRss = false;
+
     return true;
 }

@@ -1,6 +1,11 @@
+XMLLDFLAGS!=pkg-config --libs libxml-2.0
+XMLLDFLAGS?=$(shell pkg-config --libs libxml-2.0)
+XMLCFLAGS!=pkg-config --cflags libxml-2.0
+XMLCFLAGS?=$(shell pkg-config --cflags libxml-2.0)
+
 CPP=g++
-CFLAGS=-std=c++17 -Wall -pedantic -fPIC -static-libstdc++
-LDFLAGS = -L/usr/local/ssl/lib
+CFLAGS=-std=c++17 -Wall -pedantic -fPIC -static-libstdc++ $(XMLCFLAGS)
+LDFLAGS = -L/usr/local/ssl/lib $(XMLLDFLAGS)
 LDLIBS = -lssl -lcrypto
 
 feedreader: arguments.o openssl.o parser.o
