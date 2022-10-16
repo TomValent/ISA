@@ -51,18 +51,6 @@ char *str2char(int integer){
     return str;
 }
 
-std::string removePort(std::string host){
-    int len = host.length();
-    bool found = false;
-    for(int i = 0; i < len; i++){
-        if(host[i] == ':' || found){
-            host[i] = '\0';
-            found = true;
-        }
-    }
-    return host;
-}
-
 char *parseURL(std::string url, bool isHTTPS, int port, bool portInLink){
     char charURL[MAX_URL_SIZE];
     strcpy(charURL, url.c_str());
@@ -114,7 +102,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         }
         BIO *bio = nullptr;
         SSL_CTX *ssl_ctx = nullptr;
-        SSL *ssl = (SSL*) malloc(sizeof(ssl));
+        SSL *ssl = nullptr;
         char *host;
 
         if(!strstr(url.c_str(), "https:")){
@@ -188,12 +176,6 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             }
         }
 
-        std::string hostOnly = removePort(host);
-
-        // openssl s_client -connect hostname
-        // http server + wireshark bad request
-        // telnet link port
-
         std::string request =
                     "GET " + getPath(url) + " HTTP/1.0\r\n"
                     "Host: " + host + "\r\n"
@@ -243,33 +225,32 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         }
         while(readRes != 0);
 
-        std::cout << request << std::endl << (response != "" ? response : "Empty response") << std::endl;
+        std::string responseText;
+        Parser parser;
 
-        //std::string responseText;
-        //Parser parser;
+        if (!parser.parseHttpResponse(response, &responseText))
+        {
+            fprintf(stderr, "Error: Invalid HTTP response from '%s'.\n", url.c_str());
+            if(bio){
+                BIO_free_all(bio);
+            }
+            if(ssl_ctx){
+                SSL_CTX_free(ssl_ctx);
+            }
+            return false;
+        }
 
-        //parser.parseHttpResponse(response, &responseText);
-//        if (!Parser::parseHttpResponse(response, &responseText))
-//        {
-//            fprintf(stderr, "Error: Invalid HTTP response from '%s'.\n", url.c_str());
-//            if(bio)
-//                BIO_free_all(bio);
-    //        if(ssl_ctx){
-    //            SSL_CTX_free(ssl_ctx);
-    //        }
-//            return false;
-//        }
-//
-//        if (!Parser::parseXML(responseText, arguments, url))
-//        {
-//            fprintf(stderr, "Error: Parsing XML feed from '%s'.\n", url.c_str());
-//            if(bio)
-//                BIO_free_all(bio);
-//            if(ssl_ctx){
-//                SSL_CTX_free(ssl_ctx);
-//            }
-//            return false;
-//        }
+        if (!parser.parseXML(responseText, *arguments))
+        {
+            fprintf(stderr, "Error: Parsing XML feed from '%s'.\n", url.c_str());
+            if(bio){
+                BIO_free_all(bio);
+            }
+            if(ssl_ctx){
+                SSL_CTX_free(ssl_ctx);
+            }
+            return false;
+        }
 
         if(bio){
             BIO_free_all(bio);
