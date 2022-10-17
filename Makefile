@@ -21,7 +21,11 @@ parser.o: Parser.cpp Parser.h
 	$(CPP) $(CFLAGS) -c Parser.cpp -o parser.o
 
 clean:
-	rm *.o feedreader -f xvalen27.zip
+	rm *.o feedreader -f xvalen27.tar test
 
-zip:
-	zip xvalen27.zip *.cpp *.h Makefile
+tar:
+	tar -cf xvalen27.tar *.cpp *.h Makefile
+
+test:
+	$(CPP) $(CFLAGS) tests.cpp -o test
+	./runTests.sh
