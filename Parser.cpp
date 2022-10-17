@@ -7,8 +7,6 @@
 #include "Arguments.h"
 #include "Parser.h"
 
-#include <iostream>
-
 size_t strpos(const std::string &haystack, const std::string &needle){
     int sleng = haystack.length();
     int nleng = needle.length();
@@ -128,10 +126,16 @@ bool Parser::parseXML(std::string feed, Arguments arguments){
                                 {
                                     char *articleURL = (char *) xmlNodeGetContent(item);
                                     fprintf(stdout, "URL: %s\n", articleURL);
-                                } else if(xmlStrcasecmp(item->name, (const xmlChar *) "pubDate") == 0 && arguments.ShowTime())
+                                } else if((xmlStrcasecmp(item->name, (const xmlChar *) "pubDate") == 0 || xmlStrcasecmp(item->name, (const xmlChar *) "lastBuildDate") == 0) && arguments.ShowTime())
                                 {
-                                    char *timeUpdated = (char *) xmlNodeGetContent(item);
-                                    fprintf(stdout, "Aktualizace: %s\n", timeUpdated);
+                                    if(xmlStrcasecmp(item->name, (const xmlChar *) "lastBuildDate") == 0)   //article was updated
+                                    {
+                                        char *timeUpdated = (char *) xmlNodeGetContent(item);
+                                        fprintf(stdout, "Aktualizace: %s\n", timeUpdated);
+                                    } else {                                                                //article was not updated yet (only created)
+                                        char *timeCreated = (char *) xmlNodeGetContent(item);
+                                        fprintf(stdout, "Aktualizace: %s\n", timeCreated);
+                                    }
                                 } else if(xmlStrcasecmp(item->name, (const xmlChar *) "author") == 0 && arguments.ShowAuthor())
                                 {
                                     char *author = (char *) xmlNodeGetContent(item);

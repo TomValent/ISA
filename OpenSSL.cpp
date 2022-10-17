@@ -5,8 +5,6 @@
 #include "OpenSSL.h"
 #include "Parser.h"
 
-#include <iostream>
-
 #define MAX_URL_SIZE 500
 #define MAX_REQUEST_SIZE 500
 #define MAX_READ_SIZE 5000
