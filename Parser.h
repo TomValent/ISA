@@ -8,7 +8,7 @@
 class Parser {
     public:
         bool parseHttpResponse(std::string response, std::string *responseText);
-        static bool parseXML(std::string feeds, Arguments arguments);
+        static bool parseXML(std::string feed, Arguments arguments);
 };
 
 

@@ -94,12 +94,9 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
     ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms();
 
-    int i = 0, urlCount = urls.size();
+    int i = 0;
     for (const auto &url : urls){
         i++;
-        if (i != 1 && i <= urlCount){
-            printf("\n");
-        }
         BIO *bio = nullptr;
         SSL_CTX *ssl_ctx = nullptr;
         SSL *ssl = nullptr;

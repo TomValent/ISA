@@ -129,6 +129,7 @@ Arguments parseArguments(int argc, char **argv){
                 args.setFeedfile(argv[i+1]);
                 file = true;
             }
+            i++;
         }
         else if(strstr(argv[i], "http://") || strstr(argv[i], "https://")){
             args.setFeedURL(argv[i]);
@@ -147,11 +148,13 @@ Arguments parseArguments(int argc, char **argv){
             if(i+1 < argc){
                 args.setCertificate(argv[i+1]);
             }
+            i++;
         }
         else if(strcmp(argv[i], "-C") == 0) {
             if(i+1 < argc){
                 args.setCertificateAddr(argv[i+1]);
             }
+            i++;
         }
         else if(strcmp(argv[i], "-T") == 0){
             args.setShowTime(true);
@@ -161,6 +164,10 @@ Arguments parseArguments(int argc, char **argv){
         }
         else if(strcmp(argv[i], "-u") == 0){
             args.setShowURL(true);
+        }
+        else if(strcmp(argv[i], "./feedreader") != 0){
+            fprintf(stderr, "Error: Parameter %s does not exist.\n", argv[i]);
+            exit(ERROR);
         }
     }
 
