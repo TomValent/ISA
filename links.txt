@@ -1,0 +1,7 @@
+http://feeds.bbci.co.uk/news/world/rss.xml
+http://www.theregister.com/headlines.atom
+https://www.feedforall.com/sample-feed.xml
+https://www.fit.vut.cz/fit/news-rss/.cs
+https://en.wikipedia.org/w/api.php?hidebots=1&days=7&limit=50&hidewikidata=1&action=feedrecentchanges&feedformat=atom
+https://what-if.xkcd.com/feed.atom
+#running this file with: ./feedreader -f "links.txt" -C /etc/ssl/certs

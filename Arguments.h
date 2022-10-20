@@ -39,3 +39,4 @@ class Arguments {
         static std::vector<std::string> getUrlsFromFile(std::string filename);
 };
 #endif //ISA_ARGUMENTS_H
+

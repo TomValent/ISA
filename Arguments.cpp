@@ -21,6 +21,10 @@ string Arguments::getFeedfile(){
 }
 
 void Arguments::setFeedURL(string feedURL){
+    if(feedURL.length() > MAX_URL_SIZE){
+        fprintf(stderr, "Error: Link is too long. Maximum length is %d.", MAX_URL_SIZE);
+        exit(ERROR);
+    }
     this->feedURL = feedURL;
 }
 string Arguments::getFeedURL(){
@@ -108,6 +112,12 @@ vector<string> Arguments::getUrlsFromFile(string filename){
             continue;
         list.push_back(line);
         char charURL[MAX_URL_SIZE];
+
+        if(line.length() > MAX_URL_SIZE){
+            fprintf(stderr, "Error: Link is too long. Maximum length is %d.", MAX_URL_SIZE);
+            exit(ERROR);
+        }
+
         strcpy(charURL, line.c_str());
         Arguments args;
         portArray[count] = args.findPort(charURL);
@@ -183,9 +193,7 @@ int main(int argc, char **argv) {
     Arguments args = parseArguments(argc, argv);
     vector<string> urls;
 
-    if(args.getFeedURL() != "")
-        urls.push_back(args.getFeedURL());
-    else{
+    if(args.getFeedfile() != ""){
         urls = Arguments::getUrlsFromFile(args.getFeedfile());
 
         int len = urls.size();
@@ -200,6 +208,9 @@ int main(int argc, char **argv) {
             }
             args.ports[i] = portArray[i];
         }
+    }
+    else if(args.getFeedURL() != ""){
+        urls.push_back(args.getFeedURL());
     }
 
     if(!OpenSSL::processFeeds(urls, &args)){
