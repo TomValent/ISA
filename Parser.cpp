@@ -54,7 +54,7 @@ bool Parser::parseXML(std::string feed, Arguments arguments){
     xmlDocPtr doc = xmlParseDoc((const xmlChar *) feed.c_str());
     if (!doc)
     {
-        fprintf(stderr, "Invalid feed format.\n");
+        fprintf(stderr, "Error: Unsupported feed format.\n");
         xmlCleanupParser();
         return false;
     }
@@ -62,7 +62,7 @@ bool Parser::parseXML(std::string feed, Arguments arguments){
     xmlNodePtr root = xmlDocGetRootElement(doc);
     if (!root)
     {
-        fprintf(stderr, "Empty feed file.\n");
+        fprintf(stderr, "Error: Empty feed file.\n");
         xmlFreeDoc(doc);
         xmlCleanupParser();
         return false;

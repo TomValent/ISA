@@ -135,12 +135,21 @@ Arguments parseArguments(int argc, char **argv){
     for(int i = 0; i < argc; i++) {
         if (strcmp(argv[i], "-f") == 0) {
             if(i+1 < argc){
+                if(file){
+                    fprintf(stderr, "Error: You cannot combine '-f feedfile' and 'feedURL' arguments.\n");
+                    exit(ERROR);
+                }
+
                 args.setFeedfile(argv[i+1]);
                 file = true;
             }
             i++;
         }
         else if(strstr(argv[i], "http://") || strstr(argv[i], "https://")){
+            if(file){
+                fprintf(stderr, "Error: You cannot combine '-f feedfile' and 'feedURL' arguments.\n");
+                exit(ERROR);
+            }
             args.setFeedURL(argv[i]);
             file = true;
             args.setPort(args.findPort(argv[i]));
@@ -181,7 +190,7 @@ Arguments parseArguments(int argc, char **argv){
     }
 
     if(!file){
-        fprintf(stderr, "Missing feedfile or URL.\n");
+        fprintf(stderr, "Error: Missing feedfile or URL.\n");
         exit(ERROR);
     }
 
