@@ -121,7 +121,19 @@ vector<string> Arguments::getUrlsFromFile(string filename){
 
         strcpy(charURL, line.c_str());
         Arguments args;
-        portArray[count] = args.findPort(charURL);
+
+        int port = args.findPort(charURL);
+        if(!port){
+            if(strstr(charURL, "http:")){
+                portArray[count] = DEFAULT_HTTP_PORT;
+            } else {
+                portArray[count] = DEFAULT_HTTPS_PORT;
+            }
+        }
+        else{
+            portArray[count] = port;
+        }
+        printf("%d", portArray[count]);exit(0);
         count++;
     }
 
