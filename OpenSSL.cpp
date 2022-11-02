@@ -132,7 +132,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
             }
 
             if (!verify){
-                fprintf(stderr,"Verification of certificates failed.\n");\
+                fprintf(stderr,"Error: Verification of certificates failed.\n");\
                 fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
                 return false;
             }
@@ -159,7 +159,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         {
             BIO_get_ssl(bio, &ssl);
             if(SSL_get_verify_result(ssl) != X509_V_OK){
-                fprintf(stderr, "Verification of ssl failed.\n");
+                fprintf(stderr, "Error: Verification of ssl failed.\n");
                 fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
                 if(bio) {
                     BIO_free_all(bio);
@@ -182,7 +182,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         {
             if(!BIO_should_retry(bio))
             {
-                fprintf(stderr, "Verification of certificates failed.\n");
+                fprintf(stderr, "Error: Verification of certificates failed.\n");
                 fprintf(stderr, "Error: %s\n", ERR_reason_error_string(ERR_get_error()));
                 if(bio) {
                     BIO_free_all(bio);

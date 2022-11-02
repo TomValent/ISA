@@ -90,6 +90,7 @@ int Arguments::findPort(char *link){
                 fprintf(stderr, "Error: Reserved port\n");
                 exit(ERROR);
             }
+            return portInt;
         }
     }
     return 0; // == false
@@ -99,7 +100,7 @@ vector<string> Arguments::getUrlsFromFile(string filename){
     fstream file;
     file.open(filename.c_str(), ios::in);
     if(!file){
-        fprintf(stderr, "Can't open feed file.\n");
+        fprintf(stderr, "Error: Can't open feed file.\n");
         exit(ERROR);
     }
 

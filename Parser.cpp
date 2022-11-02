@@ -6,7 +6,7 @@
 #include <libxml/tree.h>
 #include "Arguments.h"
 #include "Parser.h"
-
+#include <iostream>
 size_t strpos(const std::string &haystack, const std::string &needle){
     int sleng = haystack.length();
     int nleng = needle.length();
@@ -38,10 +38,13 @@ bool Parser::parseHttpResponse(std::string response, std::string *responseText){
         }
         else
         {
-            fprintf(stderr, "Wrong type of feed.\nProgram supports only RSS <rss> and ATOM <feed> feeds\n.");
+            fprintf(stderr, "Error: Wrong type of feed.\nProgram supports only RSS <rss> and ATOM <feed> feeds\n.");
             return false;
         }
     } else{
+        if(strstr(response.c_str(), "HTTP/1.1 301 Moved Permanently")){
+            fprintf(stderr, "Log: HTTP/1.1 301 Moved Permanently\n");
+        }
         return false;
     }
 
