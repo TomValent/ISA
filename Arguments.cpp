@@ -133,7 +133,6 @@ vector<string> Arguments::getUrlsFromFile(string filename){
         else{
             portArray[count] = port;
         }
-        printf("%d", portArray[count]);exit(0);
         count++;
     }
 
@@ -196,6 +195,29 @@ Arguments parseArguments(int argc, char **argv){
         else if(strcmp(argv[i], "-u") == 0){
             args.setShowURL(true);
         }
+        else if(strcmp(argv[i], "-h") == 0){
+            fprintf(stdout, "Použití: feedreader <URL | -f <feedfile>> [-c <certfile>] [-C <certaddr>] [-T] [-a] [-u]\n\n"
+
+                            "Pořadí parametrů je libovolné. Popis parametrů:\n\n"
+
+                            " - Povinně je uveden buď URL požadovaného zdroje (přičemž podporovaná schémata jsou http a https), nebo parametr -f s "
+                            "dodatečným parametrem určujícího umístění souboru feedfile. Soubor feedfile je textový soubor, kde \n\tje na každém řádku "
+                            "uvedena jedna adresa zdroje ve formátu Atom, či RSS. Prázdné řádky v souboru feedfile ignorujte. Řádky začínající "
+                            "znakem '#' v souboru feedfile ignorujte, jsou to komentáře.  Soubor feedfile je \n\tobvyklý Unixový textový soubor, "
+                            "tzn. poslední znak na každém řádků je LF. Z toho také vyplývá, že poslední znak v souboru je LF.\n"
+                            " - Volitelný parametr -c definuje soubor <certfile> s certifikáty, který se použije pro ověření platnosti certifikátu "
+                            "SSL/TLS předloženého serverem.\n"
+                            " - Volitelný parametr -C určuje adresář <certaddr>, ve kterém se mají vyhledávat certifikáty, které se použijí pro ověření "
+                            "platnosti certifikátu SSL/TLS předloženého serverem.\n"
+                            " - Pokud není uveden parametr -c ani -C, pak použijte úložiště certifikátů získané funkcí SSL_CTX_set_default_verify_paths().\n"
+                            " - Při spuštění s parametrem -T se pro každý záznam zobrazí navíc informace o čase změny záznamu, či vytvoření záznamu (je-li ve staženém souboru obsaženo).\n"
+                            " - Při spuštění s parametrem -a se pro každý záznam zobrazí jméno autora, či jeho e-mailová adresa (je-li ve staženém souboru obsaženo).\n"
+                            " - Při spuštění s parametrem -u se pro každý záznam zobrazí asociované URL (je-li ve staženém souboru obsaženo).\n"
+            );
+
+            exit(0);
+        }
+
         else if(strcmp(argv[i], "./feedreader") != 0){
             fprintf(stderr, "Error: Parameter %s does not exist.\n", argv[i]);
             exit(ERROR);
