@@ -16,7 +16,7 @@ class Arguments {
         int port;
 
     public:
-        bool portInLink = true;
+        bool portInLink = false;
         int ports[100] = {0};
 
         void setFeedfile(std::string feedfile);

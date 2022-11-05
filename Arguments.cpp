@@ -201,9 +201,9 @@ Arguments parseArguments(int argc, char **argv){
                             "Pořadí parametrů je libovolné. Popis parametrů:\n\n"
 
                             " - Povinně je uveden buď URL požadovaného zdroje (přičemž podporovaná schémata jsou http a https), nebo parametr -f s "
-                            "dodatečným parametrem určujícího umístění souboru feedfile. Soubor feedfile je textový soubor, kde \n\tje na každém řádku "
+                            "dodatečným parametrem určujícího umístění souboru feedfile. Soubor feedfile je textový soubor, kde je na každém řádku "
                             "uvedena jedna adresa zdroje ve formátu Atom, či RSS. Prázdné řádky v souboru feedfile ignorujte. Řádky začínající "
-                            "znakem '#' v souboru feedfile ignorujte, jsou to komentáře.  Soubor feedfile je \n\tobvyklý Unixový textový soubor, "
+                            "znakem '#' v souboru feedfile ignorujte, jsou to komentáře.  Soubor feedfile je obvyklý Unixový textový soubor, "
                             "tzn. poslední znak na každém řádků je LF. Z toho také vyplývá, že poslední znak v souboru je LF.\n"
                             " - Volitelný parametr -c definuje soubor <certfile> s certifikáty, který se použije pro ověření platnosti certifikátu "
                             "SSL/TLS předloženého serverem.\n"

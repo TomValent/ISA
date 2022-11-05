@@ -100,6 +100,7 @@ bool OpenSSL::processFeeds(std::vector <std::string> urls, Arguments *arguments)
         SSL *ssl = nullptr;
         char *host;
 
+        arguments->portInLink = arguments->findPort((char *)url.c_str());
         if(!strstr(url.c_str(), "https:")){
             if(arguments->getFeedfile() != ""){
                 host = parseURL(url, false, arguments->ports[i-1], arguments->portInLink);

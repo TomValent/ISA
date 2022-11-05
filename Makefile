@@ -24,7 +24,7 @@ clean:
 	rm *.o feedreader xvalen27.tar -f
 
 tar:
-	tar -cf xvalen27.tar *.cpp *.h Makefile README.md Documentation.pdf
+	tar -cf xvalen27.tar *.cpp *.h Makefile README.md Documentation.pdf links.txt
 
 test:
 	echo "No tests"
